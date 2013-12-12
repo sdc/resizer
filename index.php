@@ -21,7 +21,6 @@ $config->releasedate  = '2013-12-12';
 //$config->in   = ($config->debug) ? 'in-debug/' : 'in/';
 $config->in     = 'in/';
 $config->out    = 'out/';
-$config->jpegs  = 'jpegs/';
 
 // Config options.
 $config->width        = 851;
@@ -35,42 +34,20 @@ if (!isset($_SESSION['image'])) {
   $_SESSION['image'] = '';
 }
 
-if (isset($_GET['purgein'])) {
+if (isset($_GET['reset'])) {
   foreach (scandir($config->in) as $item) {
     if ($item != '.' && $item != '..' && $item != 'empty') {
       unlink($config->in.$item);
     }
   }
-  header('location: index.php?alert=purgein');
-  exit;
-}
-if (isset($_GET['purgeout'])) {
   foreach (scandir($config->out) as $item) {
     if ($item != '.' && $item != '..' && $item != 'empty') {
       unlink($config->out.$item);
     }
   }
-  foreach (scandir($config->jpegs) as $item) {
-    if ($item != '.' && $item != '..' && $item != 'empty') {
-      unlink($config->jpegs.$item);
-    }
-  }
-  header('location: index.php?alert=purgeout');
+  header('location: index.php?alert=reset');
   exit;
 }
-// Resetting everything
-/*
-if (isset($_GET['reset'])) {
-  $_SESSION = array();
-  if (ini_get("session.use_cookies")) {
-    $params = session_get_cookie_params();
-    setcookie(session_name(), '', time() - 42000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
-  }
-  session_destroy();
-  header('location: index.php');
-  exit;
-}
-*/
 
 // Check and sort out any GET parameters.
 if (isset($_GET['width']) && !empty($_GET['width']) && is_numeric($_GET['width']) && $_GET['width'] > 0 && $_GET['width'] < 5000) {
@@ -102,13 +79,17 @@ if (isset($_GET['height']) && !empty($_GET['height']) && is_numeric($_GET['heigh
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h4 class="modal-title">About <?php echo $config->title; ?></h4>
+            <h4 class="modal-title">How to use <?php echo $config->title; ?></h4>
           </div>
           <div class="modal-body">
             <p>1. Upload an image using the 'Choose file' button, then clicking 'Go!'.</p>
             <p><strong>Note:</strong> You can upload as many images as you wish, but be sensible. :)</p>
             <p>2. Type your desired image width and height (in pixels) into the two text boxes, or choose a preset by clicking the appropriate button.</p>
-            <p>3. Click the 'Process images' button.</p>
+            <p>3. Click the 'Process images' button.  12 'slices' of the original will be created in the sizes you specified.</p>
+            <p>4. Click on your preferred image. Right-click and choose 'Save Image as...' to save the image to your computer.</p>
+            <p><strong>Note:</strong> You can use the on-screen arrows or the left and right arrow keys on your keyboard to move through the images.</p>
+            <p>5. If you uploaded more than one image, scroll down to see them, and save them in the same way.</p>
+            <p>6. When finished, click <span class="glyphicon glyphicon-remove"></span> at the top of the screen to delete all the images.</p>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-info" data-dismiss="modal">Done</button>
@@ -129,12 +110,8 @@ if (isset($_GET['height']) && !empty($_GET['height']) && is_numeric($_GET['heigh
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li><a href="#aboutModal" data-toggle="modal"><span class="glyphicon glyphicon-info-sign"></span></a></li>
-            <li><a href="index.php?reset"><span class="glyphicon glyphicon-remove"></span></a></li>
-            <!-- <li><a href="<?php echo $config->in; ?>"><span class="glyphicon glyphicon-folder-open"></span> <span class="glyphicon glyphicon-log-in"></span></a></li> -->
-            <!-- <li><a href="<?php echo $config->out; ?>"><span class="glyphicon glyphicon-folder-open"></span> <span class="glyphicon glyphicon-log-out"></span></a></li> -->
-            <li><a href="index.php?purgein"><span class="glyphicon glyphicon-trash"></span> <span class="glyphicon glyphicon-log-in"></span></a></li>
-            <li><a href="index.php?purgeout"><span class="glyphicon glyphicon-trash"></span> <span class="glyphicon glyphicon-log-out"></span></a></li>
+            <li><a href="#aboutModal" data-toggle="modal">Info &amp; Help <span class="glyphicon glyphicon-info-sign"></span></a></li>
+            <li><a href="index.php?reset">Reset <span class="glyphicon glyphicon-remove"></span></a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -192,29 +169,12 @@ if ($handle = opendir($config->in)) {
 if ($config->debug) {
   echo '  <div class="alert alert-warning">Debug mode is on. Just so\'s you know, mmmkay?</div>';
 }
-if (isset($_GET['alert']) && !empty($_GET['alert']) && $_GET['alert'] == 'purgein') {
+if (isset($_GET['alert']) && !empty($_GET['alert']) && $_GET['alert'] == 'reset') {
   echo '  <div class="alert alert-success alert-dismissable purged" id="alert-deleted1">';
   echo '    <button type="button" class="close" data-dismiss="alert1" aria-hidden="true">&times;</button>';
-  echo '    The input folder has been purged.';
+  echo '    All images have been removed.';
   echo '  </div>';
 }
-if (isset($_GET['alert']) && !empty($_GET['alert']) && $_GET['alert'] == 'purgeout') {
-  echo '  <div class="alert alert-success alert-dismissable purged" id="alert-deleted2">';
-  echo '    <button type="button" class="close" data-dismiss="alert2" aria-hidden="true">&times;</button>';
-  echo '    The output folder has been purged.';
-  echo '  </div>';
-}
-
-/*
-echo '<div class="row">';
-echo '  <div class="col-sm-12">';
-echo '    <p><b>Looking in:</b> <a href="'.$config->in.'" title="Browse the incoming files folder">'.$config->in.' <span class="glyphicon glyphicon-log-in"></span></a><br>';
-echo '    <b>Exporting to:</b> <a href="'.$config->out.'" title="Browse the processed files folder">'.$config->out.' <span class="glyphicon glyphicon-log-out"></span></a><br>';
-//echo '    <b>Resizing to:</b> '.$config->width.'&times;'.$config->height.'<br>';
-//echo '    <b>Slices:</b> '.$config->slices.'<br>';
-echo '  </div>';
-echo '</div>';
-*/
 
 if ($imagesnum == 0) {
 
@@ -274,7 +234,7 @@ if ($imagesnum > 0) {
             <button href="#" onClick="preset2();" class="btn btn-info btn-xs">Website (events)</button>
             <button href="#" onClick="preset3();" class="btn btn-info btn-xs">Staff (news pic)</button>
             <button href="#" onClick="preset4();" class="btn btn-info btn-xs">News item</button>
-            <button href="#" onClick="preset5();" class="btn btn-info btn-xs">Wiiide</button>
+            <button href="#" onClick="preset5();" class="btn btn-info btn-xs">Wide</button>
           </p>
 
           <form class="form-inline" role="form" action="index.php">
@@ -370,8 +330,6 @@ if (isset($_GET['submit'])) {
         
         // Create the file name.
         $imgname    = explode('.', $image);
-        //$filename   = $imgname[0].'-slice'.($j+1).'.'.$imgname[1];
-        //$filename   = $imgname[0].'-slice'.($j+1).'-'.$config->width.'_'.$config->height.'.'.$imgname[1];
         $filename   = $imgname[0].'-slice'.($j+1).'-'.$config->width.'_'.$config->height.'.jpg';
         
         // Testing the image format.
@@ -388,10 +346,9 @@ if (isset($_GET['submit'])) {
         $alt = $filename.' ('.$newy.'-'.($newy+$config->height).') '.$imgsize.'kB';
         echo '<div class="col-sm-2">'."\n";
         echo '  <a class="fancybox" rel="image'.$count.'" href="'.$config->out.$filename.'" title="'.$alt.'" data-toggle="tooltip">'."\n";
-        //echo '    <img class="img-thumbnail" src="'.$config->out.$filename.'" alt="'.$alt.'">'."\n";
-        echo '    <img class="img-thumbnail" src="'.$config->out.$filename.'" alt="">'."\n";
+        echo '    <img class="img-thumbnail" src="'.$config->out.$filename.'" alt="'.$alt.'">'."\n";
+        //echo '    <img class="img-thumbnail" src="'.$config->out.$filename.'" alt="">'."\n";
         echo '  </a>'."\n";
-        //echo '  <a href="jpegs.php?image='.urlencode($config->out.$filename).'"><small>Compress this image</small></a>'."\n";
         echo '</div>'."\n";
 
         flush();
@@ -437,7 +394,7 @@ if (isset($_GET['submit'])) {
 
     <div id="footer">
       <div class="container">
-        <p class="text-muted">Version <?php echo $config->version; ?> (<?php echo $config->releasedate; ?>) &copy; 2013 Webteam</p>
+        <p class="text-muted">Version <?php echo $config->version; ?> (<?php echo $config->releasedate; ?>) &copy; <?php echo date('Y', time()); ?> Webteam</p>
       </div>
     </div>
 

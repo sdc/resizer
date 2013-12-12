@@ -1,4 +1,4 @@
-              <?php
+<?php
 
 /**
  * Image resizing and cropping script, #2.
@@ -166,9 +166,29 @@ if ($handle = opendir($config->in)) {
   $imagesnum = count($images);
 }
 
+// Checking for Debug mode.
 if ($config->debug) {
   echo '  <div class="alert alert-warning">Debug mode is on. Just so\'s you know, mmmkay?</div>';
 }
+
+// Sanity checks.
+if (!extension_loaded('imagick')) {
+  echo '  <div class="alert alert-danger" id="alert-imagick">';
+  echo '    <strong>Error:</strong> The required extension <strong>Imagick</strong> is not installed. Please install it to continue.';
+  echo '  </div>';
+}
+if (!is_writable($config->in)) {
+  echo '  <div class="alert alert-danger" id="alert-imagick">';
+  echo '    <strong>Error:</strong> The upload folder <strong>'.$config->in.'</strong> is not writeable. Please ensure it is writeable to continue.';
+  echo '  </div>';
+}
+if (!is_writable($config->out)) {
+  echo '  <div class="alert alert-danger" id="alert-imagick">';
+  echo '    <strong>Error:</strong> The output folder <strong>'.$config->out.'</strong> is not writeable. Please ensure it is writeable to continue.';
+  echo '  </div>';
+}
+
+// If a reset was triggered.
 if (isset($_GET['alert']) && !empty($_GET['alert']) && $_GET['alert'] == 'reset') {
   echo '  <div class="alert alert-success alert-dismissable purged" id="alert-deleted1">';
   echo '    <button type="button" class="close" data-dismiss="alert1" aria-hidden="true">&times;</button>';
@@ -274,14 +294,17 @@ if (isset($_GET['submit'])) {
     // Image settings.
     //$img->setImageFormat("jpeg");
     //$img->setFormat("jpeg");
-    $img->setImageCompression(Imagick::COMPRESSION_JPEG); 
-    $img->setImageCompressionQuality($config->compression); 
+    $img->setImageCompression(Imagick::COMPRESSION_JPEG);
+    $img->setImageCompressionQuality($config->compression);
 
-    // Get width and height
+    // Strip away stuff that we don't need.
+    $img->stripImage();
+
+    // Get width and height.
     $imggeo = $img->getImageGeometry();
 
     echo '<div class="row">';
-    
+
     // Do some checks.
     $landscape = $minwidth = $minheight = $correctsize = false;
     if ($imggeo['width'] >= $imggeo['height']) {
@@ -292,10 +315,10 @@ if (isset($_GET['submit'])) {
     }
     if ($imggeo['height'] >= $config->height) {
       $minheight = true;
-    }    
+    }
     if ($imggeo['width'] == $config->width && $imggeo['height'] == $config->height) {
       $correctsize = true;
-    }    
+    }
 
     if ($landscape && $minwidth && $minheight && !$correctsize) {
       // Resize the image.
@@ -306,10 +329,10 @@ if (isset($_GET['submit'])) {
 
       // Remaining pixel height.
       $imgheightrem = $imggeo['height'] - $config->height;
-      
+
       //$startpercentinpixels = 0;
       //$endpercentinpixels = 0;
-      
+
       //$startpercentinpixels = ($config->percentstart/100) * $imgheightrem;
       //$endpercentinpixels = ($config->percentend/100) * $imgheightrem;
 
@@ -327,11 +350,11 @@ if (isset($_GET['submit'])) {
         // Crop.
         //$imgtemp->cropImage($config->width, $config->height, 0, $newy+$startpercentinpixels);
         $imgtemp->cropImage($config->width, $config->height, 0, $newy);
-        
+
         // Create the file name.
         $imgname    = explode('.', $image);
         $filename   = $imgname[0].'-slice'.($j+1).'-'.$config->width.'_'.$config->height.'.jpg';
-        
+
         // Testing the image format.
         $img->setImageFormat("jpeg");
         //$img->setFormat("jpeg");
@@ -381,13 +404,13 @@ if (isset($_GET['submit'])) {
     echo '</div>';
 
     // Free some RAM.
-    $img->clear(); 
-    $img->destroy(); 
+    $img->clear();
+    $img->destroy();
 
   }
 } // End if.
 
-?>    
+?>
     </div>
 
     <hr>
@@ -443,7 +466,7 @@ if (isset($_GET['submit'])) {
 
       window.setTimeout(function() {
         $("div.purged").fadeTo(500, 0).slideUp(500, function() {
-          $(this).remove(); 
+          $(this).remove();
         });
       }, 3000);
 

@@ -28,5 +28,6 @@ namespace :deploy do
 end
 
 after "deploy:create_symlink" do
-    #don't
+    run "chmod a+rwx #{current_path}/in"
+    run "chmod a+rwx #{current_path}/out"
 end

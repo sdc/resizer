@@ -93,7 +93,7 @@ if (isset($_GET['height']) && !empty($_GET['height']) && is_numeric($_GET['heigh
             <h4 class="modal-title">How to use <?php echo $config->title; ?></h4>
           </div>
           <div class="modal-body">
-            <p>1. Upload an image using the 'Choose file' button, then clicking 'Go!'.</p>
+            <p>1. Upload an image using the 'Choose file' button, then clicking 'Go!'. Upload JPEGs or non-transparent PNGs.</p>
             <p><strong>Note:</strong> You can upload as many images as you wish, but be sensible. :)</p>
             <p>2. Type your desired image width and height (in pixels) into the two text boxes, or choose a preset by clicking the appropriate button.</p>
             <p>3. Click the 'Process images' button.  12 'slices' of the original will be created in the sizes you specified.</p>
@@ -219,7 +219,7 @@ if (ini_get('upload_max_filesize') != ini_get('post_max_size')) {
 if (isset($_GET['alert']) && !empty($_GET['alert']) && $_GET['alert'] == 'reset') {
   echo '  <div class="alert alert-success alert-dismissable purged" id="alert-deleted1">';
   echo '    <button type="button" class="close" data-dismiss="alert1" aria-hidden="true">&times;</button>';
-  $deleted = (int) $_GET['deleted'];
+  $deleted = (int) $_GET['files'];
   if ($deleted == 0) {
     echo 'No images to remove.';
   } else {

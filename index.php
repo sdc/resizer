@@ -1,55 +1,66 @@
 <?php
 
 /**
- * Image resizing and cropping script, #2.
+ * Image resizing and cropping script.
+ * (c) 2013 South Devon College
  */
-
-//session_name('resizer');
-//session_start();
 
 $config = new stdClass();
 
 // Debugging.
-$config->debug = false;
+$config->debug        = false;
 
 // Strings.
 $config->title        = 'Image Resizer';
-$config->version      = '0.2.2';
-$config->releasedate  = '2013-12-12';
+$config->version      = '0.2.3';
+$config->releasedate  = '2013-12-13';
 
 // Paths.
-//$config->in   = ($config->debug) ? 'in-debug/' : 'in/';
-$config->in     = 'in/';
-$config->out    = 'out/';
+$config->in           = 'in/';
+$config->out          = 'out/';
 
 // Config options.
 $config->width        = 851;
 $config->height       = 315;
 $config->compression  = 80;   // JPEG compression/quality setting.
-$config->slices       = 12;   // 6 is recommended as that fits nicely with Bootstrap.
+$config->slices       = 12;
+$config->uploadsize   = (1024*1024)*10;
 
-$config->uploadsize   = 10485760; // 10Mb.
-
-if (!isset($_SESSION['image'])) {
-  $_SESSION['image'] = '';
+// Little function to get byte number from ini_get() returns.
+function return_bytes($val) {
+  $val = trim($val);
+  $last = strtolower($val[strlen($val)-1]);
+  switch($last) {
+    case 'g':
+      $val *= 1024;
+    case 'm':
+      $val *= 1024;
+    case 'k':
+      $val *= 1024;
+  }
+  return $val;
 }
 
+// If the user hits the reset button, purge the upload and output folders.
 if (isset($_GET['reset'])) {
+  $deleted = 0;
   foreach (scandir($config->in) as $item) {
     if ($item != '.' && $item != '..' && $item != 'empty') {
       unlink($config->in.$item);
+      $deleted++;
     }
   }
   foreach (scandir($config->out) as $item) {
     if ($item != '.' && $item != '..' && $item != 'empty') {
       unlink($config->out.$item);
+      $deleted++;
     }
   }
-  header('location: index.php?alert=reset');
+  header('location: index.php?alert=reset&files='.$deleted);
   exit;
 }
 
-// Check and sort out any GET parameters.
+// Check and sort out image-related GET parameters.
 if (isset($_GET['width']) && !empty($_GET['width']) && is_numeric($_GET['width']) && $_GET['width'] > 0 && $_GET['width'] < 5000) {
   $config->width = $_GET['width'];
 }
@@ -178,13 +189,23 @@ if (!extension_loaded('imagick')) {
   echo '  </div>';
 }
 if (!is_writable($config->in)) {
-  echo '  <div class="alert alert-danger" id="alert-imagick">';
+  echo '  <div class="alert alert-danger" id="alert-writable-in">';
   echo '    <strong>Error:</strong> The upload folder <strong>'.$config->in.'</strong> is not writeable. Please ensure it is writeable to continue.';
   echo '  </div>';
 }
 if (!is_writable($config->out)) {
-  echo '  <div class="alert alert-danger" id="alert-imagick">';
+  echo '  <div class="alert alert-danger" id="alert-writable-out">';
   echo '    <strong>Error:</strong> The output folder <strong>'.$config->out.'</strong> is not writeable. Please ensure it is writeable to continue.';
+  echo '  </div>';
+}
+if (return_bytes(ini_get('post_max_size')) < $config->uploadsize) {
+  echo '  <div class="alert alert-warning" id="alert-post-max-size">';
+  echo '    <strong>Error:</strong> PHP setting <strong>post_max_size ('.number_format(return_bytes(ini_get('post_max_size'))).' bytes)</strong> is less than the allowed upload size set by this script <strong>('.number_format($config->uploadsize).' bytes)</strong>. File uploads may not succeed.';
+  echo '  </div>';
+}
+if (return_bytes(ini_get('upload_max_filesize')) < $config->uploadsize) {
+  echo '  <div class="alert alert-warning" id="alert-upload_max_filesize">';
+  echo '    <strong>Error:</strong> PHP setting <strong>upload_max_filesize ('.number_format(return_bytes(ini_get('upload_max_filesize'))).' bytes)</strong> is less than the allowed upload size set by this script <strong>('.number_format($config->uploadsize).' bytes)</strong>. File uploads may not succeed.';
   echo '  </div>';
 }
 
@@ -192,36 +213,32 @@ if (!is_writable($config->out)) {
 if (isset($_GET['alert']) && !empty($_GET['alert']) && $_GET['alert'] == 'reset') {
   echo '  <div class="alert alert-success alert-dismissable purged" id="alert-deleted1">';
   echo '    <button type="button" class="close" data-dismiss="alert1" aria-hidden="true">&times;</button>';
-  echo '    All images have been removed.';
+  echo '    '.$_GET['deleted'].' image(s) have been removed.';
   echo '  </div>';
 }
 
 if ($imagesnum == 0) {
-
   echo '      <div class="row">';
   echo '        <div class="col-sm-12">';
   echo '          <h4>No images uploaded.</h4>';
   echo '        </div>';
   echo '      </div>';
-
 } else {
-
   echo '      <div class="row">';
   echo '        <div class="col-sm-12">';
   echo '          <h4>Working with these images:</h4>';
   echo '        </div>';
   echo '      </div>';
-
-  echo '<div class="row">';
+  echo '      <div class="row">';
   $count = 0;
   foreach ($images as $image) {
-    echo '  <div class="col-sm-2">';
-    echo '    <a href="'.$config->in.$image.'" class="fancybox" data-fancybox-group="fancybox" title="'.$image.'">';
-    echo '      <img class="img-thumbnail" src="'.$config->in.$image.'" alt="'.$image.'">';
-    echo '    </a>'."\n";
-    echo '  </div>';
+    echo '        <div class="col-sm-2">';
+    echo '          <a href="'.$config->in.$image.'" class="fancybox" data-fancybox-group="fancybox" title="'.$image.'">';
+    echo '            <img class="img-thumbnail" src="'.$config->in.$image.'" alt="'.$image.'">';
+    echo '          </a>'."\n";
+    echo '        </div>';
   }
-  echo '</div>';
+  echo '      </div>';
 }
 
 ?>
@@ -417,7 +434,7 @@ if (isset($_GET['submit'])) {
 
     <div id="footer">
       <div class="container">
-        <p class="text-muted">Version <?php echo $config->version; ?> (<?php echo $config->releasedate; ?>) &copy; <?php echo date('Y', time()); ?> Webteam</p>
+        <p class="text-muted">Version <?php echo $config->version; ?> (<?php echo $config->releasedate; ?>) &copy; <?php echo date('Y', time()); ?> SDC Webteam. Problems or comments? Contact the <a href="mailto:helpdesk@southdevon.ac.uk">Helpdesk</a>.</p>
       </div>
     </div>
 

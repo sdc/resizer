@@ -208,7 +208,7 @@ if (return_bytes(ini_get('upload_max_filesize')) < $config->uploadsize) {
   echo '    <strong>Error:</strong> PHP setting <strong>upload_max_filesize ('.number_format(return_bytes(ini_get('upload_max_filesize'))).' bytes)</strong> is less than the allowed upload size set by this script <strong>('.number_format($config->uploadsize).' bytes)</strong>. File uploads may not succeed.';
   echo '  </div>';
 }
-if (ini_get('upload_max_filesize')) != ini_get('post_max_size')) {
+if (ini_get('upload_max_filesize') != ini_get('post_max_size')) {
   echo '  <div class="alert alert-warning alert-dismissable" id="alert-php-settings-not equal">';
   echo '    <button type="button" class="close" data-dismiss="alert">&times;</button>';
   echo '    <strong>Error:</strong> PHP settings <strong>post_max_size</strong> and <strong>upload_max_filesize</strong> are not identical. This may or may not be intentional.';

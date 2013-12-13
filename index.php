@@ -219,7 +219,12 @@ if (ini_get('upload_max_filesize') != ini_get('post_max_size')) {
 if (isset($_GET['alert']) && !empty($_GET['alert']) && $_GET['alert'] == 'reset') {
   echo '  <div class="alert alert-success alert-dismissable purged" id="alert-deleted1">';
   echo '    <button type="button" class="close" data-dismiss="alert1" aria-hidden="true">&times;</button>';
-  echo '    '.$_GET['deleted'].' image(s) have been removed.';
+  $deleted = (int) $_GET['deleted'];
+  if ($deleted == 0) {
+    echo 'No images to remove.';
+  } else {
+    echo $deleted.' image(s) have been removed.';
+  }
   echo '  </div>';
 }
 

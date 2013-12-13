@@ -31,3 +31,13 @@ after "deploy:create_symlink" do
     run "chmod a+rwx #{current_path}/in"
     run "chmod a+rwx #{current_path}/out"
 end
+
+# Added to be able to remove old deployments again!
+# http://stackoverflow.com/questions/17754307/cap-deploycleanup-fails-with-use-sudo-true
+# $ cap customtasks:customcleanup
+namespace :customtasks do
+    task :customcleanup, :except => {:no_release => true} do
+        count = fetch(:keep_releases, 3).to_i
+        run "ls -1dt #{releases_path}/* | tail -n +#{count + 1} | #{try_sudo} xargs rm -rf"
+    end
+end

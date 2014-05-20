@@ -2,7 +2,7 @@
 
 /**
  * Image resizing and cropping script.
- * (c) 2013 South Devon College
+ * (c) 2013-2014 South Devon College
  */
 
 $config = new stdClass();
@@ -12,8 +12,8 @@ $config->debug        = false;
 
 // Strings.
 $config->title        = 'Image Resizer';
-$config->version      = '0.2.3';
-$config->releasedate  = '2013-12-13';
+$config->version      = '0.2.4';
+$config->releasedate  = '2014-05-20';
 
 // Paths.
 $config->in           = 'in/';
@@ -283,6 +283,7 @@ if ($imagesnum > 0) {
             <button href="#" onClick="preset3();" class="btn btn-info btn-xs">Staff (news pic)</button>
             <button href="#" onClick="preset4();" class="btn btn-info btn-xs">News item</button>
             <button href="#" onClick="preset5();" class="btn btn-info btn-xs">Wide</button>
+            <button href="#" onClick="preset6();" class="btn btn-info btn-xs">School Club</button>
           </p>
 
           <form class="form-inline" role="form" action="index.php">
@@ -490,6 +491,10 @@ if (isset($_GET['submit'])) {
       function preset5() {
         document.getElementById('width').value  = '1000';
         document.getElementById('height').value = '150';
+      }
+      function preset6() {
+        document.getElementById('width').value  = '750';
+        document.getElementById('height').value = '375';
       }
 
       window.setTimeout(function() {
